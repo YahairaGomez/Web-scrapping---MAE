@@ -124,4 +124,3 @@ if __name__ == "__main__":
 
             # Paso 4: descargar los excels de ese mes
             download_xlsx_files(html_per_month, headers, output_dir=f"output_files/{year}")
->>>>>>> downloading_data_for_all_months
