@@ -111,13 +111,17 @@ if __name__ == "__main__":
     year_list = obtain_year(html)
 
     ## Accesing to each year folder
-    data_per_anio = get_data(f"Post Operación/Informes/Evaluación Mensual/{year_list[0]}/")
-    html_per_anio = obtain_html(BASE_URL, headers, data_per_anio, "data_per_year.html")
+    for year in year_list:
+        data_per_anio = get_data(f"Post Operación/Informes/Evaluación Mensual/{year}/")
+        html_per_anio = obtain_html(BASE_URL, headers, data_per_anio)
 
-    ## Accesing to each month folder
-    months_list = obtain_months(html_per_anio)
-    data_per_month = get_data(months_list[0])
-    html_per_month = obtain_html(BASE_URL, headers, data_per_month, "data_per_month.html")
+        ## Accesing to each month folder
+        
+        months_list = obtain_months(html_per_anio)
+        for month in months_list:
+            data_per_month = get_data(month)
+            html_per_month = obtain_html(BASE_URL, headers, data_per_month)
 
-    # Paso 4: descargar los excels de ese mes
-    download_xlsx_files(html_per_month, headers, output_dir=f"output_files/{year_list[0]}")
+            # Paso 4: descargar los excels de ese mes
+            download_xlsx_files(html_per_month, headers, output_dir=f"output_files/{year}")
+>>>>>>> downloading_data_for_all_months
