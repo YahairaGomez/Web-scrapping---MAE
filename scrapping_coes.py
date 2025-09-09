@@ -109,6 +109,7 @@ if __name__ == "__main__":
     # Obtain the main HTML doc
     html = obtain_html(BASE_URL, headers, data, "initial.html")
     year_list = obtain_year(html)
+    year_list = [year for year in year_list if year >= 2018] # Downloading info from 2018 since earlier files have different format
 
     ## Accesing to each year folder
     for year in year_list:
