@@ -23,7 +23,17 @@ def preprocessing_one_file(df):
         
     ## Reducing the original df
     searched_column = 'Unnamed: 0'
-    idx_total = get_id_by_name(df, searched_column, "Total") ##Finding the row id with "Total"
+    if searched_column not in df.columns:
+        print("Columna 'Unnamed: 0' no encontrada, se omite archivo")
+        return None
+
+    # Buscar Total
+    try:
+        idx_total = get_id_by_name(df, searched_column, "Total")
+    except IndexError:
+        print("Fila 'Total' no encontrada, se omite archivo")
+        return None
+    
     df = df.loc[0:idx_total, 'Unnamed: 0':'Unnamed: 3']
 
     ## Changing the columns' name
@@ -33,16 +43,23 @@ def preprocessing_one_file(df):
     searched_column = "Tipo de Generación"
     
     ## Obtaining the Electric generation data (Last 3 months)
-    idx_hidroelectrica = get_id_by_name(df,searched_column, "Hidroeléctrica")
+    try:
+        idx_hidroelectrica = get_id_by_name(df, searched_column, "Hidroeléctrica")
+    except IndexError:
+        print("Fila 'Hidroeléctrica' no encontrada, se omite archivo")
+        return None
     df = df.loc[idx_hidroelectrica:idx_total, :]
 
 
     ## Obtaining data from the current excel month
-    latest_month = meses[-1] 
-    df_current_month = df[['Tipo de Generación', latest_month]]
+    latest_month = meses[-1]
+    df_current_month = df[['Tipo de Generación', latest_month]].copy() 
 
+    # Changing column's name
     df_current_month['Mes'] = pd.to_datetime(latest_month, format='%b-%Y').strftime('%b')
     df_current_month['Año'] = pd.to_datetime(latest_month, format='%b-%Y').strftime('%Y')
+    df_current_month = df_current_month.rename(columns={latest_month: 'Consumo(MW)'})
+
 
     # Renaming values
     df_current_month = df_current_month.rename(columns={latest_month: 'Consumo(MW)'})
@@ -50,6 +67,8 @@ def preprocessing_one_file(df):
     return df_current_month
 
 if __name__ == "__main__":
+    df_list = []
+
     current_folder = Path.cwd()
    
     year_to_analyze_list = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]
@@ -57,7 +76,6 @@ if __name__ == "__main__":
         folder_path = current_folder / f"output_files/{year_to_analyze}"
 
         excel_files_path = glob.glob(str(folder_path / '*.xlsx'))
-        df_list = []
 
         if not excel_files_path:
             print(f"No hay archivos en {folder_path}")
@@ -70,11 +88,10 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"Skipping {file_path}: {e}")
 
-        if df_list:
-            df_final = pd.concat(df_list, ignore_index=True)
-            df_final.to_csv(current_folder / f"df_processed_final.csv", index=False)
-            
-        else:
-            print("No se encontraron archivos válidos para procesar.")
-
+    # Concatenar todos los DataFrames después de procesar todos los años
+    if df_list:
+        df_final = pd.concat(df_list, ignore_index=True)
+        df_final.to_csv(current_folder / f"df_processed_final.csv", index=False)
+    else:
+        print("No se encontraron archivos válidos para procesar.")
     
